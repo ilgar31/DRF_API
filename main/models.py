@@ -1,0 +1,119 @@
+from django.db import models
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    name = models.CharField("Имя", max_length=40, blank=True)
+    balance = models.CharField("Баланс", max_length=40, blank=True)
+    status = models.CharField("Статус", max_length=40, blank=True)
+
+    def __str__(self):
+        return self.user.username
+
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
+
+
+class Department(models.Model):
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="departments")
+    building = models.CharField("Здание", max_length=40, blank=True)
+    level = models.CharField("Этаж", max_length=40, blank=True)
+    line = models.CharField("Линия", max_length=40, blank=True)
+    department = models.CharField("Отдел", max_length=40, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username}: {self.building} {self.level} {self.line} {self.department}"
+
+
+class Employer(models.Model):
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="employer")
+    name = models.CharField("Имя", max_length=35, blank=True)
+    post = models.CharField("Должность", max_length=35, blank=True)
+    status = models.IntegerField("Статус", blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class MarkupType(models.Model):
+    pass
+
+
+class Products(models.Model):
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="products")
+    uid = models.IntegerField("Артикул", blank=True)
+    qr_code = ''
+    name = models.CharField("Название", max_length=175, blank=True)
+    quantity = models.IntegerField("Количество", blank=True)
+    description = models.TextField("Описание")
+    price_purchasing = models.IntegerField("Цена закупочная", blank=True)
+    price_retail = models.IntegerField("Цена розница", blank=True)
+    price_wholesale = models.IntegerField("Цена оптовая", blank=True)
+    price_agent = models.IntegerField("Цена cвоим", blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+def product_photo_save(instance, filename):
+    return f'png/products/{instance.product.user.username}/{instance.product.name}/{filename}'
+
+
+class Photo(models.Model):
+    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name="photos")
+    photo = models.ImageField("Фото", upload_to=product_photo_save)
+
+    def __str__(self):
+        return f'{self.image}'
+
+
+class Options(models.Model):
+    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name="options")
+    color = models.CharField("Цвет", max_length=50, blank=True)
+    size = models.CharField("Размер", max_length=30, blank=True)
+    quantity = models.IntegerField("Кол-во", blank=True)
+    storage = models.CharField("Где лежит", max_length=50, blank=True)
+    price_purchasing = models.IntegerField("Цена закупочная", blank=True)
+    price_retail = models.IntegerField("Цена розница", blank=True)
+    price_wholesale = models.IntegerField("Цена оптовая", blank=True)
+    price_agent = models.IntegerField("Цена cвоим", blank=True)
+
+    def __str__(self):
+        return f'{self.color} {self.size}'
+
+
+def sale_photo_save(instance, filename):
+    return f'png/sales/{instance.user.username}/{instance.name} - {instance.date_time}/{filename}'
+
+
+class Sale(models.Model):
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="sales")
+    date_time = models.DateTimeField("Дата-время", blank=True)
+    photo = models.ImageField("Фото", upload_to=sale_photo_save)
+    name = models.CharField("Название", max_length=175, blank=True)
+    color = models.CharField("Цвет", max_length=50, blank=True)
+    size = models.CharField("Размер", max_length=30, blank=True)
+    quantity = models.IntegerField("Кол-во", blank=True)
+    price = models.IntegerField("Цена", blank=True)
+    sale_sum = models.IntegerField("Сумма", blank=True)
+    employer = models.CharField("Сотрудник", max_length=50, blank=True)
+
+    def __str__(self):
+        return f'{self.name} - {self.date_time}'
+
+
