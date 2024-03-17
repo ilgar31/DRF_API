@@ -11,6 +11,13 @@ urlpatterns = [
     path('get/user_products/<str:email>/', views.GetUserProductsView.as_view()),
     path('get/user_sales/<str:email>/', views.GetUserSalesView.as_view()),
     path('get/user_returns/<str:email>/', views.GetUserReturnsView.as_view()),
+    path('get/product_by_uid/<str:uid>/', views.GetProductView.as_view()),
     #add
     path('add/user/<str:data>/', views.AddUserView.as_view()),
+    path('add/user_department/<str:email>/<str:data>/', views.AddUserDepartmentView.as_view()),
+    path('add/user_employer/<str:email>/<str:data>/', views.AddUserEmployeeView.as_view()),
+    path('add/user_markup/<str:email>/<str:data>/', views.AddUserMarkupView.as_view()),
+    path('add/user_product/<str:email>/<str:data>/', views.AddUserProductView.as_view()),
+    # path('add/user_sale/<str:email>/<str:data>/', views.AddUserSaleView.as_view()),
+    # path('add/user_return/<str:email>/<str:data>/', views.AddUserReturnView.as_view()),
 ]

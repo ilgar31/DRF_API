@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, Department, Employer, Products, Photo, Options, Sales, Returns, Markups
+from .models import Profile, Department, Employer, Products, Photos, Options, Sales, Returns, Markups
 
 
 class DepartmentInline(admin.TabularInline):
@@ -22,9 +22,9 @@ class ProductsInline(admin.TabularInline):
     model = Products
 
 
-class PhotoInline(admin.TabularInline):
+class PhotosInline(admin.TabularInline):
     fk_name = 'product'
-    model = Photo
+    model = Photos
 
 
 class OptionsInline(admin.TabularInline):
@@ -49,4 +49,4 @@ class ProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Products)
 class PurchaseAdmin(admin.ModelAdmin):
-    inlines = [PhotoInline, OptionsInline, ]
+    inlines = [PhotosInline, OptionsInline, ]

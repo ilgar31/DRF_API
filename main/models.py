@@ -5,6 +5,7 @@ from django.dispatch import receiver
 from django.core.files.base import ContentFile
 import qrcode
 from io import BytesIO
+import os
 
 
 class Profile(models.Model):
@@ -77,23 +78,23 @@ class Products(models.Model):
     def save(self, *args, **kwargs):
         if not self.qr_code:
             img = qrcode.make(f'https://get/product_by_uid/{self.uid}')
-            img.save(f"main/static/png/products_qr/{self.uid}.png")
             qr_bytes = BytesIO()
             img.save(qr_bytes, format='PNG')
-            self.qr_code.save(f"{self.uid}.png", ContentFile(qr_bytes.getvalue()))
+            self.qr_code.save(f"main/static/png/products_qr/{self.uid}.png", ContentFile(qr_bytes.getvalue()))
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
 
 
-def product_photo_save(instance, filename):
-    return f'main/static/png/products/{instance.product.user.user.username}/{instance.product.name}/{filename}'
+def photo_save(instance, filename):
+    if not os.path.exists(f'main/static/png/products/{instance.product.user.user.username}/{instance.product.uid} ({instance.product.name})/{filename}'):
+        return f'main/static/png/products/{instance.product.user.user.username}/{instance.product.uid} ({instance.product.name})/{filename}'
 
 
-class Photo(models.Model):
+class Photos(models.Model):
     product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name="photos")
-    photo = models.ImageField("Фото", upload_to=product_photo_save)
+    photo = models.ImageField("Фото", upload_to=photo_save)
 
     def __str__(self):
         return f'{self.photo}'
@@ -115,7 +116,7 @@ class Options(models.Model):
 
 
 def sale_photo_save(instance, filename):
-    return f'png/sales/{instance.user.user.username}/{instance.name} - {instance.date_time}/{filename}'
+    return f'main/static/png/sales/{instance.user.user.username}/{instance.name} - {instance.date_time.strftime("%d.%m.%y %H:%M")}/{filename}'
 
 
 class Sales(models.Model):
@@ -134,10 +135,14 @@ class Sales(models.Model):
         return f'{self.name} - {self.date_time}'
 
 
+def return_photo_save(instance, filename):
+    return f'main/static/png/returns/{instance.user.user.username}/{instance.name} - {instance.date_time.strftime("%d.%m.%y %H:%M")}/{filename}'
+
+
 class Returns(models.Model):
     user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="returns")
     date_time = models.DateTimeField("Дата-время", blank=True)
-    photo = models.ImageField("Фото", upload_to=sale_photo_save)
+    photo = models.ImageField("Фото", upload_to=return_photo_save)
     name = models.CharField("Название", max_length=175, blank=True)
     color = models.CharField("Цвет", max_length=50, blank=True)
     size = models.CharField("Размер", max_length=30, blank=True)
