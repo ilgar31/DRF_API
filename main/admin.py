@@ -1,14 +1,20 @@
 from django.contrib import admin
-from .models import Profile, Department, Employer, MarkupType, Products, Photo, Options, Sale
+from .models import Profile, Department, Employer, Products, Photo, Options, Sales, Returns, Markups
 
 
 class DepartmentInline(admin.TabularInline):
     fk_name = 'user'
     model = Department
 
+
 class EmployerInline(admin.TabularInline):
     fk_name = 'user'
     model = Employer
+
+
+class MarkupsInline(admin.TabularInline):
+    fk_name = 'user'
+    model = Markups
 
 
 class ProductsInline(admin.TabularInline):
@@ -26,14 +32,19 @@ class OptionsInline(admin.TabularInline):
     model = Options
 
 
-class SaleInline(admin.TabularInline):
+class SalesInline(admin.TabularInline):
     fk_name = 'user'
-    model = Sale
+    model = Sales
+
+
+class ReturnsInline(admin.TabularInline):
+    fk_name = 'user'
+    model = Returns
 
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    inlines = [DepartmentInline, EmployerInline, ProductsInline, SaleInline, ]
+    inlines = [DepartmentInline, EmployerInline, MarkupsInline, ProductsInline, SalesInline, ReturnsInline]
 
 
 @admin.register(Products)
