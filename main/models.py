@@ -84,7 +84,7 @@ class Products(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return f'{self.uid} ({self.name})'
 
 
 def photo_save(instance, filename):

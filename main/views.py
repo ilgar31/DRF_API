@@ -6,6 +6,7 @@ import json
 import base64
 from PIL import Image
 import io
+import os
 
 from .serializers import UserSerializer
 from .forms import UserRegistrationForm
@@ -17,25 +18,28 @@ def qr_to_json(file):
     data = {}
     with open(path_to_file, mode='rb') as file:
         img = file.read()
+    file_name = os.path.basename(path_to_file)
+    data['file_name'] = file_name
     data['image'] = base64.b64encode(img).decode('utf-8')
-    return json.dumps(data)
+    return data
 
 
 def png_to_json(path_to_file):
     data = {}
     with open(str(path_to_file), mode='rb') as file:
         img = file.read()
+    file_name = str(path_to_file).split('/')[-1]
+    data['file_name'] = file_name
     data['image'] = base64.b64encode(img).decode('utf-8')
-    return json.dumps(data)
+    return data
 
 
-def json_to_png(json_data, output_file):
-    data = json.loads(json_data)
+def json_to_png(data, output_file):
     image_data = data['image']
     image_bytes = base64.b64decode(image_data)
     image = Image.open(io.BytesIO(image_bytes))
-    print(image)
     image.save(output_file)
+    return image
 
 
 def all_data():
@@ -359,11 +363,6 @@ class AddUserProductView(APIView):
             price_retail = data_dict['price_retail']
             price_wholesale = data_dict['price_wholesale']
             price_agent = data_dict['price_agent']
-            try:
-                for photo in data_dict['photos']:
-                    new_photo = Photos()
-                    new_photo.photo =
-            options = data_dict['options']
             if uid and name and quantity and description and price_purchasing and price_agent and price_retail and price_wholesale:
                 new_product = Products()
                 new_product.user = user.profile
@@ -379,6 +378,30 @@ class AddUserProductView(APIView):
                     if str(i.uid) == str(data_dict['uid']):
                         return Response({"error": "Such a product already exists at this vendor"})
                 new_product.save()
+                try:
+                    for photo in data_dict['photos']:
+                        new_photo = Photos()
+                        new_photo.product = new_product
+                        new_photo.photo = json_to_png(photo["image"], f'main/static/png/products/{user.username}/{uid} ({name})/{photo["file_name"]}')
+                        new_photo.save()
+                except:
+                    pass
+
+                try:
+                    for option in data_dict['options']:
+                        new_option = Options()
+                        new_option.product = new_product
+                        new_option.color = option['color']
+                        new_option.size = option['size']
+                        new_option.quantity = option['quantity']
+                        new_option.storage = option['storage']
+                        new_option.price_purchasing = option['price_purchasing']
+                        new_option.price_retail = option['price_retail']
+                        new_option.price_wholesale = option['price_wholesale']
+                        new_option.price_agent = option['price_agent']
+                        new_option.save()
+                except:
+                    pass
                 return Response({"status": "successfully"})
             else:
                 return Response({"error": "No data received!"})
