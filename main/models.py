@@ -88,8 +88,7 @@ class Products(models.Model):
 
 
 def photo_save(instance, filename):
-    if not os.path.exists(f'main/static/png/products/{instance.product.user.user.username}/{instance.product.uid} ({instance.product.name})/{filename}'):
-        return f'main/static/png/products/{instance.product.user.user.username}/{instance.product.uid} ({instance.product.name})/{filename}'
+    return f'main/static/png/products/{instance.product.user.user.username}/{instance.product.uid} ({instance.product.name})/{filename}'
 
 
 class Photos(models.Model):

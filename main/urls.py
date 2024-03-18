@@ -14,13 +14,11 @@ urlpatterns = [
     path('get/product_by_uid/<str:uid>/', views.GetProductView.as_view()),
     #add
     path('add/user/<str:data>/', views.AddUserView.as_view()),
-    path('add/user_department/<str:email>/<str:data>/', views.AddUserDepartmentView.as_view()),
-    path('add/user_employer/<str:email>/<str:data>/', views.AddUserEmployeeView.as_view()),
-    path('add/user_markup/<str:email>/<str:data>/', views.AddUserMarkupView.as_view()),
-    path('add/user_product', views.AddUserProductView.as_view()),
-    # path('add/user_sale/<str:email>/<str:data>/', views.AddUserSaleView.as_view()),
-    # path('add/user_return/<str:email>/<str:data>/', views.AddUserReturnView.as_view()),
+    path('add/user_department/<str:data>/', views.AddUserDepartmentView.as_view()),
+    path('add/user_employer/<str:data>/', views.AddUserEmployeeView.as_view()),
+    path('add/user_markup/<str:data>/', views.AddUserMarkupView.as_view()),
+    path('add/user_product/', views.AddUserProductView.as_view()),
+    path('add/user_sale/', views.AddUserSaleView.as_view()),
+    path('add/user_return/', views.AddUserReturnView.as_view()),
 ]
-
-# {"uid": 111, "name": "Майка", "quantity": 412, "description": "крутая футболка", "price_purchasing": 100, "price_retail": 150, "price_wholesale": 200, "price_agent": 100, "options": [{"color": "Синий", "size": "50", "quantity": 2, "storage": "ящик 1", "price_purchasing": 100, "price_retail": 200, "price_wholesale": 150, "price_agent": 150}]}
 

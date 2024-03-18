@@ -2,11 +2,13 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
 import json
 import base64
 from PIL import Image
 import io
 import os
+import datetime
 
 from .serializers import UserSerializer
 from .forms import UserRegistrationForm
@@ -34,12 +36,9 @@ def png_to_json(path_to_file):
     return data
 
 
-def json_to_png(data, output_file):
-    image_data = data['image']
-    image_bytes = base64.b64decode(image_data)
-    image = Image.open(io.BytesIO(image_bytes))
-    image.save(output_file)
-    return image
+def json_to_bytes(data):
+    image_bytes = base64.b64decode(data)
+    return image_bytes
 
 
 def all_data():
@@ -90,7 +89,7 @@ def all_data():
         try:
             sales = user.profile.sales.all()
             item['sales'] = [{"date_time": sale.date_time.strftime("%d.%m.%y %H:%M"), "photo": png_to_json(sale.photo), "name": sale.name,
-                              "color": sale.color, "size": sale.size, "quantity": sale.quantity,
+                              "color": sale.color, "size": sale.size, "quantity": sale.quantity, "price": sale.price,
                               "sale_sum": sale.sale_sum, "employer": sale.employer} for sale in sales]
         except:
             item['sales'] = []
@@ -98,7 +97,7 @@ def all_data():
         try:
             returns = user.profile.returns.all()
             item['returns'] = [{"date_time": return_obj.date_time.strftime("%d.%m.%y %H:%M"), "photo": png_to_json(return_obj.photo), "name": return_obj.name,
-                              "color": return_obj.color, "size": return_obj.size, "quantity": return_obj.quantity,
+                              "color": return_obj.color, "size": return_obj.size, "quantity": return_obj.quantity, "price": return_obj.price,
                               "sale_sum": return_obj.sale_sum, "employer": return_obj.employer} for return_obj in returns]
         except:
             item['returns'] = []
@@ -249,160 +248,230 @@ class AddUserView(APIView):
 
 
 class AddUserDepartmentView(APIView):
-    def get(self, request, email, data):
-        try:
-            user = User.objects.get(username=email)
-        except:
-            return Response({'error': "There is no such user"})
+    def get(self, request, data):
         if data:
             data_dict = json.loads(data)
-            building = data_dict['building']
-            level = data_dict['level']
-            line = data_dict['line']
-            department = data_dict['department']
-            if building and level and line and department:
-                new_department = Department()
-                new_department.user = user.profile
-                new_department.building = building
-                new_department.level = level
-                new_department.line = line
-                new_department.department = department
-                for i in user.profile.departments.all():
-                    if str(i) == str(new_department):
-                        return Response({"error": "Such a department already exists at this vendor"})
-                new_department.save()
-                return Response({"status": "successfully"})
-            else:
+            try:
+                print(data)
+                user = User.objects.get(username=data_dict['email'])
+            except:
+                return Response({'error': "There is no such user"})
+            try:
+                building = data_dict['building']
+                level = data_dict['level']
+                line = data_dict['line']
+                department = data_dict['department']
+            except:
                 return Response({"error": "No data received!"})
+
+            new_department = Department()
+            new_department.user = user.profile
+            new_department.building = building
+            new_department.level = level
+            new_department.line = line
+            new_department.department = department
+            for i in user.profile.departments.all():
+                if str(i) == str(new_department):
+                    return Response({"error": "Such a department already exists at this vendor"})
+            new_department.save()
+            return Response({"status": "successfully"})
         return Response({"error": "No data received!"})
 
 
 class AddUserEmployeeView(APIView):
-    def get(self, request, email, data):
-        try:
-            user = User.objects.get(username=email)
-        except:
-            return Response({'error': "There is no such user"})
+    def get(self, request, data):
         if data:
             data_dict = json.loads(data)
-            name = data_dict['name']
-            post = data_dict['post']
-            status = data_dict['status']
-            if name and post and status:
-                new_employer = Employer()
-                new_employer.user = user.profile
-                new_employer.name = name
-                new_employer.post = post
-                new_employer.status = status
-                for i in user.profile.employees.all():
-                    i_dict = {
-                        'name': i.name,
-                        'post': i.post,
-                        'status': str(i.status),
-                    }
-                    if i_dict == data_dict:
-                        return Response({"error": "Such a employer already exists at this vendor"})
-                new_employer.save()
-                return Response({"status": "successfully"})
-            else:
+            try:
+                user = User.objects.get(username=data_dict['email'])
+            except:
+                return Response({'error': "There is no such user"})
+            try:
+                name = data_dict['name']
+                post = data_dict['post']
+                status = int(data_dict['status'])
+            except:
                 return Response({"error": "No data received!"})
+
+            new_employer = Employer()
+            new_employer.user = user.profile
+            new_employer.name = name
+            new_employer.post = post
+            new_employer.status = status
+            for i in user.profile.employees.all():
+                if i.name == name and i.post == post and i.status == status:
+                    return Response({"error": "Such a employer already exists at this vendor"})
+            new_employer.save()
+            return Response({"status": "successfully"})
         return Response({"error": "No data received!"})
 
 
 class AddUserMarkupView(APIView):
-    def get(self, request, email, data):
-        try:
-            user = User.objects.get(username=email)
-        except:
-            return Response({'error': "There is no such user"})
+    def get(self, request, data):
         if data:
             data_dict = json.loads(data)
-            name = data_dict['name']
-            price_range_from = data_dict['price_range_from']
-            price_range_to = data_dict['price_range_to']
-            markup = data_dict['markup']
-            markup_method = data_dict['markup_method']
-            if name and price_range_from and price_range_to and markup and markup_method:
-                new_markup = Markups()
-                new_markup.user = user.profile
-                new_markup.name = name
-                new_markup.price_range_from = price_range_from
-                new_markup.price_range_to = price_range_to
-                new_markup.markup = markup
-                new_markup.markup_method = markup_method
-                for i in user.profile.markups.all():
-                    i_dict = {
-                        'name': i.name,
-                        'price_range_from': str(i.price_range_from),
-                        'price_range_to': str(i.price_range_to),
-                        'markup': str(i.markup),
-                        'markup_method': i.markup_method,
-                    }
-                    if i_dict == data_dict:
-                        return Response({"error": "Such a markup already exists at this vendor"})
-                new_markup.save()
-                return Response({"status": "successfully"})
-            else:
+            try:
+                user = User.objects.get(username=data_dict['email'])
+            except:
+                return Response({'error': "There is no such user"})
+            try:
+                name = data_dict['name']
+                price_range_from = data_dict['price_range_from']
+                price_range_to = data_dict['price_range_to']
+                markup = data_dict['markup']
+                markup_method = data_dict['markup_method']
+            except:
                 return Response({"error": "No data received!"})
+
+            new_markup = Markups()
+            new_markup.user = user.profile
+            new_markup.name = name
+            new_markup.price_range_from = int(price_range_from)
+            new_markup.price_range_to = int(price_range_to)
+            new_markup.markup = int(markup)
+            new_markup.markup_method = markup_method
+            for i in user.profile.markups.all():
+                if i.name == name and i.price_range_from == price_range_from and i.price_range_to == price_range_to and i.markup == markup and i.markup_method == markup_method:
+                    return Response({"error": "Such a markup already exists at this vendor"})
+            new_markup.save()
+            return Response({"status": "successfully"})
         return Response({"error": "No data received!"})
 
 
 class AddUserProductView(APIView):
-    def get(self, request, email, data):
-        try:
-            user = User.objects.get(username=email)
-        except:
-            return Response({'error': "There is no such user"})
-        if data:
-            data_dict = json.loads(data)
-            uid = data_dict['uid']
-            name = data_dict['name']
-            quantity = data_dict['quantity']
-            description = data_dict['description']
-            price_purchasing = data_dict['price_purchasing']
-            price_retail = data_dict['price_retail']
-            price_wholesale = data_dict['price_wholesale']
-            price_agent = data_dict['price_agent']
-            if uid and name and quantity and description and price_purchasing and price_agent and price_retail and price_wholesale:
-                new_product = Products()
-                new_product.user = user.profile
-                new_product.uid = uid
-                new_product.name = name
-                new_product.quantity = quantity
-                new_product.description = description
-                new_product.price_purchasing = price_purchasing
-                new_product.price_retail = price_retail
-                new_product.price_wholesale = price_wholesale
-                new_product.price_agent = price_agent
-                for i in Products.objects.all():
-                    if str(i.uid) == str(data_dict['uid']):
-                        return Response({"error": "Such a product already exists at this vendor"})
-                new_product.save()
-                try:
-                    for photo in data_dict['photos']:
-                        new_photo = Photos()
-                        new_photo.product = new_product
-                        new_photo.photo = json_to_png(photo["image"], f'main/static/png/products/{user.username}/{uid} ({name})/{photo["file_name"]}')
-                        new_photo.save()
-                except:
-                    pass
-
-                try:
-                    for option in data_dict['options']:
-                        new_option = Options()
-                        new_option.product = new_product
-                        new_option.color = option['color']
-                        new_option.size = option['size']
-                        new_option.quantity = option['quantity']
-                        new_option.storage = option['storage']
-                        new_option.price_purchasing = option['price_purchasing']
-                        new_option.price_retail = option['price_retail']
-                        new_option.price_wholesale = option['price_wholesale']
-                        new_option.price_agent = option['price_agent']
-                        new_option.save()
-                except:
-                    pass
-                return Response({"status": "successfully"})
-            else:
+    def post(self, request):
+        data_dict = request.data
+        if data_dict:
+            try:
+                user = User.objects.get(username=data_dict['email'])
+            except:
+                return Response({'error': "There is no such user"})
+            try:
+                uid = data_dict['uid']
+                name = data_dict['name']
+                quantity = data_dict['quantity']
+                description = data_dict['description']
+                price_purchasing = data_dict['price_purchasing']
+                price_retail = data_dict['price_retail']
+                price_wholesale = data_dict['price_wholesale']
+                price_agent = data_dict['price_agent']
+            except:
                 return Response({"error": "No data received!"})
+
+            new_product = Products()
+            new_product.user = user.profile
+            new_product.uid = uid
+            new_product.name = name
+            new_product.quantity = quantity
+            new_product.description = description
+            new_product.price_purchasing = price_purchasing
+            new_product.price_retail = price_retail
+            new_product.price_wholesale = price_wholesale
+            new_product.price_agent = price_agent
+            for i in Products.objects.all():
+                if str(i.uid) == str(data_dict['uid']):
+                    return Response({"error": "Such a product already exists at this vendor"})
+            new_product.save()
+            try:
+                for photo in data_dict['photos']:
+                    new_photo = Photos()
+                    new_photo.product = new_product
+                    new_photo.photo.save(photo["file_name"], ContentFile(json_to_bytes(photo['image'])))
+                    new_photo.save()
+            except:
+                pass
+            try:
+                for option in data_dict['options']:
+                    new_option = Options()
+                    new_option.product = new_product
+                    new_option.color = option['color']
+                    new_option.size = option['size']
+                    new_option.quantity = option['quantity']
+                    new_option.storage = option['storage']
+                    new_option.price_purchasing = option['price_purchasing']
+                    new_option.price_retail = option['price_retail']
+                    new_option.price_wholesale = option['price_wholesale']
+                    new_option.price_agent = option['price_agent']
+                    new_option.save()
+            except:
+                pass
+            return Response({"status": "successfully"})
+        return Response({"error": "No data received!"})
+
+
+class AddUserSaleView(APIView):
+    def post(self, request):
+        data_dict = request.data
+        if data_dict:
+            try:
+                user = User.objects.get(username=data_dict['email'])
+            except:
+                return Response({'error': "There is no such user"})
+            try:
+                date_time = data_dict['date_time']
+                photo = data_dict['photo']
+                name = data_dict['name']
+                color = data_dict['color']
+                size = data_dict['size']
+                quantity = data_dict['quantity']
+                price = data_dict['price']
+                sale_sum = data_dict['sale_sum']
+                employer = data_dict['employer']
+            except:
+                return Response({"error": "No data received!"})
+
+            new_sale = Sales()
+            new_sale.user = user.profile
+            new_sale.date_time = datetime.datetime.strptime(date_time, "%d.%m.%Y %H:%M")
+            new_sale.name = name
+            new_sale.color = color
+            new_sale.size = size
+            new_sale.quantity = quantity
+            new_sale.price = price
+            new_sale.sale_sum = sale_sum
+            new_sale.employer = employer
+            for i in user.profile.sales.all():
+                if i.name == name and i.color == color and i.size == size and str(i.date_time.strftime("%d.%m.%Y %H:%M")) == str(new_sale.date_time.strftime("%d.%m.%Y %H:%M")):
+                    return Response({"error": "Such a sale already exists at this vendor"})
+            new_sale.photo.save(photo["file_name"], ContentFile(json_to_bytes(photo['image'])))
+            return Response({"status": "successfully"})
+        return Response({"error": "No data received!"})
+
+
+class AddUserReturnView(APIView):
+    def post(self, request):
+        data_dict = request.data
+        if data_dict:
+            try:
+                user = User.objects.get(username=data_dict['email'])
+            except:
+                return Response({'error': "There is no such user"})
+            try:
+                date_time = data_dict['date_time']
+                photo = data_dict['photo']
+                name = data_dict['name']
+                color = data_dict['color']
+                size = data_dict['size']
+                quantity = data_dict['quantity']
+                price = data_dict['price']
+                sale_sum = data_dict['sale_sum']
+                employer = data_dict['employer']
+            except:
+                return Response({"error": "No data received!"})
+
+            new_return = Returns()
+            new_return.user = user.profile
+            new_return.date_time = datetime.datetime.strptime(date_time, "%d.%m.%Y %H:%M")
+            new_return.name = name
+            new_return.color = color
+            new_return.size = size
+            new_return.quantity = quantity
+            new_return.price = price
+            new_return.sale_sum = sale_sum
+            new_return.employer = employer
+            for i in user.profile.returns.all():
+                if i.name == name and i.color == color and i.size == size and str(i.date_time.strftime("%d.%m.%Y %H:%M")) == str(new_return.date_time.strftime("%d.%m.%Y %H:%M")):
+                    return Response({"error": "Such a return already exists at this vendor"})
+            new_return.photo.save(photo["file_name"], ContentFile(json_to_bytes(photo['image'])))
+            return Response({"status": "successfully"})
         return Response({"error": "No data received!"})
