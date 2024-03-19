@@ -278,7 +278,7 @@ class AddUserDepartmentView(APIView):
         return Response({"error": "No data received!"})
 
 
-class AddUserEmployeeView(APIView):
+class AddUserEmployeesView(APIView):
     def get(self, request, data):
         if data:
             data_dict = json.loads(data)
@@ -474,4 +474,199 @@ class AddUserReturnView(APIView):
                     return Response({"error": "Such a return already exists at this vendor"})
             new_return.photo.save(photo["file_name"], ContentFile(json_to_bytes(photo['image'])))
             return Response({"status": "successfully"})
+        return Response({"error": "No data received!"})
+
+
+class DeleteUserView(APIView):
+    def get(self, request, email):
+        if email:
+            try:
+                user = User.objects.get(username=email)
+                user.delete()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user"})
+        return Response({"error": "No data received!"})
+
+
+class DeleteUserDepartmentsView(APIView):
+    def get(self, request, email):
+        if email:
+            try:
+                user = User.objects.get(username=email)
+                for i in user.profile.departments.all():
+                    i.delete()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user"})
+        return Response({"error": "No data received!"})
+
+
+class DeleteUserDepartmentView(APIView):
+    def get(self, request, data):
+        if data:
+            try:
+                data_dict = json.loads(data)
+                user = User.objects.get(username=data_dict['email'])
+                department = user.profile.departments.get(building=data_dict['building'],
+                                                          level=data_dict['level'],
+                                                          line=data_dict['line'],
+                                                          department=data_dict['department'], )
+                department.delete()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user or inlavid data"})
+        return Response({"error": "No data received!"})
+
+
+class DeleteUserEmployeesView(APIView):
+    def get(self, request, email):
+        if email:
+            try:
+                user = User.objects.get(username=email)
+                for i in user.profile.employees.all():
+                    i.delete()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user"})
+        return Response({"error": "No data received!"})
+
+
+class DeleteUserEmployerView(APIView):
+    def get(self, request, data):
+        if data:
+            try:
+                data_dict = json.loads(data)
+                user = User.objects.get(username=data_dict['email'])
+                employer = user.profile.employees.get(name=data_dict['name'],
+                                                          post=data_dict['post'],
+                                                          status=data_dict['status'],)
+                employer.delete()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user or inlavid data"})
+        return Response({"error": "No data received!"})
+
+
+class DeleteUserMarkupsView(APIView):
+    def get(self, request, email):
+        if email:
+            try:
+                user = User.objects.get(username=email)
+                for i in user.profile.markups.all():
+                    i.delete()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user"})
+        return Response({"error": "No data received!"})
+
+
+class DeleteUserMarkupView(APIView):
+    def get(self, request, data):
+        if data:
+            try:
+                data_dict = json.loads(data)
+                user = User.objects.get(username=data_dict['email'])
+                markup = user.profile.markups.get(name=data_dict['name'],
+                                                      price_range_from=data_dict['price_range_from'],
+                                                      price_range_to=data_dict['price_range_to'],
+                                                      markup=data_dict['markup'],
+                                                      markup_method=data_dict['markup_method'], )
+                markup.delete()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user or inlavid data"})
+        return Response({"error": "No data received!"})
+
+
+class DeleteUserProductsView(APIView):
+    def get(self, request, email):
+        if email:
+            try:
+                user = User.objects.get(username=email)
+                for i in user.profile.products.all():
+                    i.delete()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user"})
+        return Response({"error": "No data received!"})
+
+
+class DeleteUserProductView(APIView):
+    def get(self, request, uid):
+        if uid:
+            try:
+                product = Products.objects.get(uid=uid)
+                product.delete()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user or inlavid data"})
+        return Response({"error": "No data received!"})
+
+
+class DeleteUserSalesView(APIView):
+    def get(self, request, email):
+        if email:
+            try:
+                user = User.objects.get(username=email)
+                for i in user.profile.sales.all():
+                    i.delete()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user"})
+        return Response({"error": "No data received!"})
+
+
+class DeleteUserSaleView(APIView):
+    def get(self, request, data):
+        if data:
+            try:
+                data_dict = json.loads(data)
+                user = User.objects.get(username=data_dict['email'])
+                sale = user.profile.sales.get(name=data_dict['name'],
+                                              color=data_dict['color'],
+                                              size=data_dict['size'],
+                                              quantity=data_dict['quantity'],
+                                              price=data_dict['price'],
+                                              sale_sum=data_dict['sale_sum'],
+                                              employer=data_dict['employer']
+                                              )
+                sale.delete()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user or inlavid data"})
+        return Response({"error": "No data received!"})
+
+
+class DeleteUserReturnsView(APIView):
+    def get(self, request, email):
+        if email:
+            try:
+                user = User.objects.get(username=email)
+                for i in user.profile.returns.all():
+                    i.delete()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user"})
+        return Response({"error": "No data received!"})
+
+
+class DeleteUserReturnView(APIView):
+    def get(self, request, data):
+        if data:
+            try:
+                data_dict = json.loads(data)
+                user = User.objects.get(username=data_dict['email'])
+                return_obj = user.profile.returns.get(name=data_dict['name'],
+                                                      color=data_dict['color'],
+                                                      size=data_dict['size'],
+                                                      quantity=data_dict['quantity'],
+                                                      price=data_dict['price'],
+                                                      sale_sum=data_dict['sale_sum'],
+                                                      employer=data_dict['employer']
+                                                      )
+                return_obj.delete()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user or inlavid data"})
         return Response({"error": "No data received!"})
