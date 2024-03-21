@@ -54,21 +54,21 @@ def all_data():
 
         try:
             departments = user.profile.departments.all()
-            item['departments'] = [{"building": department.building, "level": department.level, "line": department.line, "department": department.department}
+            item['departments'] = [{"id": department.id, "building": department.building, "level": department.level, "line": department.line, "department": department.department}
                               for department in departments]
         except:
             item['departments'] = []
 
         try:
             employees = user.profile.employees.all()
-            item['employees'] = [{"name": employer.name, "post": employer.post, "status": employer.status}
+            item['employees'] = [{"id": employer.id, "name": employer.name, "post": employer.post, "status": employer.status}
                               for employer in employees]
         except:
             item['employees'] = []
 
         try:
             markups = user.profile.markups.all()
-            item['markups'] = [{"name": markup.name, "price_range_from": markup.price_range_from, "price_range_to": markup.price_range_to,
+            item['markups'] = [{"id": markup.id, "name": markup.name, "price_range_from": markup.price_range_from, "price_range_to": markup.price_range_to,
                                 "markup": markup.markup, "markup_method": markup.markup_method}
                               for markup in markups]
         except:
@@ -88,7 +88,7 @@ def all_data():
 
         try:
             sales = user.profile.sales.all()
-            item['sales'] = [{"date_time": sale.date_time.strftime("%d.%m.%y %H:%M"), "photo": png_to_json(sale.photo), "name": sale.name,
+            item['sales'] = [{"id": sale.id, "date_time": sale.date_time.strftime("%d.%m.%y %H:%M"), "photo": png_to_json(sale.photo), "name": sale.name,
                               "color": sale.color, "size": sale.size, "quantity": sale.quantity, "price": sale.price,
                               "sale_sum": sale.sale_sum, "employer": sale.employer} for sale in sales]
         except:
@@ -96,7 +96,7 @@ def all_data():
 
         try:
             returns = user.profile.returns.all()
-            item['returns'] = [{"date_time": return_obj.date_time.strftime("%d.%m.%y %H:%M"), "photo": png_to_json(return_obj.photo), "name": return_obj.name,
+            item['returns'] = [{"id": return_obj.id, "date_time": return_obj.date_time.strftime("%d.%m.%y %H:%M"), "photo": png_to_json(return_obj.photo), "name": return_obj.name,
                               "color": return_obj.color, "size": return_obj.size, "quantity": return_obj.quantity, "price": return_obj.price,
                               "sale_sum": return_obj.sale_sum, "employer": return_obj.employer} for return_obj in returns]
         except:
@@ -114,21 +114,21 @@ def user_data(email):
     item = serializer_for_queryset.data
     try:
         departments = user.profile.departments.all()
-        item['departments'] = [{"building": department.building, "level": department.level, "line": department.line, "department": department.department}
+        item['departments'] = [{"id": department.id, "building": department.building, "level": department.level, "line": department.line, "department": department.department}
                           for department in departments]
     except:
         item['departments'] = []
 
     try:
         employees = user.profile.employees.all()
-        item['employees'] = [{"name": employer.name, "post": employer.post, "status": employer.status}
+        item['employees'] = [{"id": employer.id, "name": employer.name, "post": employer.post, "status": employer.status}
                           for employer in employees]
     except:
         item['employees'] = []
 
     try:
         markups = user.profile.markups.all()
-        item['markups'] = [{"name": markup.name, "price_range_from": markup.price_range_from, "price_range_to": markup.price_range_to,
+        item['markups'] = [{"id": markup.id, "name": markup.name, "price_range_from": markup.price_range_from, "price_range_to": markup.price_range_to,
                             "markup": markup.markup, "markup_method": markup.markup_method}
                           for markup in markups]
     except:
@@ -148,7 +148,7 @@ def user_data(email):
 
     try:
         sales = user.profile.sales.all()
-        item['sales'] = [{"date_time": sale.date_time.strftime("%d.%m.%Y %H:%M"), "photo": png_to_json(sale.photo), "name": sale.name,
+        item['sales'] = [{"id": sale.id, "date_time": sale.date_time.strftime("%d.%m.%Y %H:%M"), "photo": png_to_json(sale.photo), "name": sale.name,
                           "color": sale.color, "size": sale.size, "quantity": sale.quantity,
                           "sale_sum": sale.sale_sum, "employer": sale.employer} for sale in sales]
     except:
@@ -156,7 +156,7 @@ def user_data(email):
 
     try:
         returns = user.profile.returns.all()
-        item['returns'] = [{"date_time": return_obj.date_time.strftime("%d.%m.%Y %H:%M"), "photo": png_to_json(return_obj.photo), "name": return_obj.name,
+        item['returns'] = [{"id": return_obj.id, "date_time": return_obj.date_time.strftime("%d.%m.%Y %H:%M"), "photo": png_to_json(return_obj.photo), "name": return_obj.name,
                           "color": return_obj.color, "size": return_obj.size, "quantity": return_obj.quantity,
                           "sale_sum": return_obj.sale_sum, "employer": return_obj.employer} for return_obj in returns]
     except:
@@ -229,9 +229,9 @@ class GetProductView(APIView):
 
 
 class AddUserView(APIView):
-    def get(self, request, data):
-        if data:
-            data_dict = json.loads(data)
+    def post(self, request):
+        data_dict = request.data
+        if data_dict:
             user_form = UserRegistrationForm({'username': data_dict['email'], 'password': data_dict['password']})
             if user_form.is_valid():
                 new_user = user_form.save(commit=False)
@@ -248,11 +248,10 @@ class AddUserView(APIView):
 
 
 class AddUserDepartmentView(APIView):
-    def get(self, request, data):
-        if data:
-            data_dict = json.loads(data)
+    def post(self, request):
+        data_dict = request.data
+        if data_dict:
             try:
-                print(data)
                 user = User.objects.get(username=data_dict['email'])
             except:
                 return Response({'error': "There is no such user"})
@@ -279,9 +278,9 @@ class AddUserDepartmentView(APIView):
 
 
 class AddUserEmployeesView(APIView):
-    def get(self, request, data):
-        if data:
-            data_dict = json.loads(data)
+    def post(self, request):
+        data_dict = request.data
+        if data_dict:
             try:
                 user = User.objects.get(username=data_dict['email'])
             except:
@@ -307,9 +306,9 @@ class AddUserEmployeesView(APIView):
 
 
 class AddUserMarkupView(APIView):
-    def get(self, request, data):
-        if data:
-            data_dict = json.loads(data)
+    def post(self, request):
+        data_dict = request.data
+        if data_dict:
             try:
                 user = User.objects.get(username=data_dict['email'])
             except:
@@ -478,7 +477,8 @@ class AddUserReturnView(APIView):
 
 
 class DeleteUserView(APIView):
-    def get(self, request, email):
+    def delete(self, request, *args, **kwargs):
+        email = request.data['email']
         if email:
             try:
                 user = User.objects.get(username=email)
@@ -490,7 +490,8 @@ class DeleteUserView(APIView):
 
 
 class DeleteUserDepartmentsView(APIView):
-    def get(self, request, email):
+    def delete(self, request, *args, **kwargs):
+        email = request.data['email']
         if email:
             try:
                 user = User.objects.get(username=email)
@@ -503,24 +504,21 @@ class DeleteUserDepartmentsView(APIView):
 
 
 class DeleteUserDepartmentView(APIView):
-    def get(self, request, data):
-        if data:
+    def delete(self, request, *args, **kwargs):
+        id = request.data['department_id']
+        if id:
             try:
-                data_dict = json.loads(data)
-                user = User.objects.get(username=data_dict['email'])
-                department = user.profile.departments.get(building=data_dict['building'],
-                                                          level=data_dict['level'],
-                                                          line=data_dict['line'],
-                                                          department=data_dict['department'], )
+                department = Department.objects.get(id=id)
                 department.delete()
                 return Response({"status": "successfully"})
             except:
-                return Response({'error': "There is no such user or inlavid data"})
+                return Response({'error': "There is no such department or inlavid data"})
         return Response({"error": "No data received!"})
 
 
 class DeleteUserEmployeesView(APIView):
-    def get(self, request, email):
+    def delete(self, request, *args, **kwargs):
+        email = request.data['email']
         if email:
             try:
                 user = User.objects.get(username=email)
@@ -533,14 +531,11 @@ class DeleteUserEmployeesView(APIView):
 
 
 class DeleteUserEmployerView(APIView):
-    def get(self, request, data):
-        if data:
+    def delete(self, request, *args, **kwargs):
+        id = request.data['employer_id']
+        if id:
             try:
-                data_dict = json.loads(data)
-                user = User.objects.get(username=data_dict['email'])
-                employer = user.profile.employees.get(name=data_dict['name'],
-                                                          post=data_dict['post'],
-                                                          status=data_dict['status'],)
+                employer = Employer.objects.get(id=id)
                 employer.delete()
                 return Response({"status": "successfully"})
             except:
@@ -549,7 +544,8 @@ class DeleteUserEmployerView(APIView):
 
 
 class DeleteUserMarkupsView(APIView):
-    def get(self, request, email):
+    def delete(self, request, *args, **kwargs):
+        email = request.data['email']
         if email:
             try:
                 user = User.objects.get(username=email)
@@ -562,16 +558,11 @@ class DeleteUserMarkupsView(APIView):
 
 
 class DeleteUserMarkupView(APIView):
-    def get(self, request, data):
-        if data:
+    def delete(self, request, *args, **kwargs):
+        id = request.data['markup_id']
+        if id:
             try:
-                data_dict = json.loads(data)
-                user = User.objects.get(username=data_dict['email'])
-                markup = user.profile.markups.get(name=data_dict['name'],
-                                                      price_range_from=data_dict['price_range_from'],
-                                                      price_range_to=data_dict['price_range_to'],
-                                                      markup=data_dict['markup'],
-                                                      markup_method=data_dict['markup_method'], )
+                markup = Markups.objects.get(id=id)
                 markup.delete()
                 return Response({"status": "successfully"})
             except:
@@ -580,7 +571,8 @@ class DeleteUserMarkupView(APIView):
 
 
 class DeleteUserProductsView(APIView):
-    def get(self, request, email):
+    def delete(self, request, *args, **kwargs):
+        email = request.data['email']
         if email:
             try:
                 user = User.objects.get(username=email)
@@ -593,7 +585,8 @@ class DeleteUserProductsView(APIView):
 
 
 class DeleteUserProductView(APIView):
-    def get(self, request, uid):
+    def delete(self, request, *args, **kwargs):
+        uid = request.data['uid']
         if uid:
             try:
                 product = Products.objects.get(uid=uid)
@@ -605,7 +598,8 @@ class DeleteUserProductView(APIView):
 
 
 class DeleteUserSalesView(APIView):
-    def get(self, request, email):
+    def delete(self, request, *args, **kwargs):
+        email = request.data['email']
         if email:
             try:
                 user = User.objects.get(username=email)
@@ -618,19 +612,11 @@ class DeleteUserSalesView(APIView):
 
 
 class DeleteUserSaleView(APIView):
-    def get(self, request, data):
-        if data:
+    def delete(self, request, *args, **kwargs):
+        id = request.data['sale_id']
+        if id:
             try:
-                data_dict = json.loads(data)
-                user = User.objects.get(username=data_dict['email'])
-                sale = user.profile.sales.get(name=data_dict['name'],
-                                              color=data_dict['color'],
-                                              size=data_dict['size'],
-                                              quantity=data_dict['quantity'],
-                                              price=data_dict['price'],
-                                              sale_sum=data_dict['sale_sum'],
-                                              employer=data_dict['employer']
-                                              )
+                sale = Sales.objects.get(id=id)
                 sale.delete()
                 return Response({"status": "successfully"})
             except:
@@ -639,7 +625,8 @@ class DeleteUserSaleView(APIView):
 
 
 class DeleteUserReturnsView(APIView):
-    def get(self, request, email):
+    def delete(self, request, *args, **kwargs):
+        email = request.data['email']
         if email:
             try:
                 user = User.objects.get(username=email)
@@ -652,21 +639,224 @@ class DeleteUserReturnsView(APIView):
 
 
 class DeleteUserReturnView(APIView):
-    def get(self, request, data):
-        if data:
+    def delete(self, request, *args, **kwargs):
+        id = request.data['return_id']
+        if id:
             try:
-                data_dict = json.loads(data)
-                user = User.objects.get(username=data_dict['email'])
-                return_obj = user.profile.returns.get(name=data_dict['name'],
-                                                      color=data_dict['color'],
-                                                      size=data_dict['size'],
-                                                      quantity=data_dict['quantity'],
-                                                      price=data_dict['price'],
-                                                      sale_sum=data_dict['sale_sum'],
-                                                      employer=data_dict['employer']
-                                                      )
+                return_obj = Returns.objects.get(id=id)
                 return_obj.delete()
                 return Response({"status": "successfully"})
             except:
                 return Response({'error': "There is no such user or inlavid data"})
+        return Response({"error": "No data received!"})
+
+
+class UpdateUserView(APIView):
+    def put(self, request, *args, **kwargs):
+        email = request.data['email']
+        data = request.data['data']
+        if email and data:
+            try:
+                user = User.objects.get(username=email)
+                if data['password']:
+                    user.set_password(data['password'])
+                if data['name']:
+                    user.profile.name = data['name']
+                if data['balance']:
+                    user.profile.balance = data['balance']
+                if data['status']:
+                    user.profile.status = data['status']
+                user.save()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user"})
+        return Response({"error": "No data received!"})
+
+
+class UpdateDepartmentView(APIView):
+    def put(self, request, *args, **kwargs):
+        id = request.data['department_id']
+        data = request.data['data']
+        if id and data:
+            try:
+                department = Department.objects.get(id=id)
+                if data['building']:
+                    department.building = data['building']
+                if data['level']:
+                    department.level = data['level']
+                if data['line']:
+                    department.line = data['line']
+                if data['department']:
+                    department.department = data['department']
+                department.save()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user"})
+        return Response({"error": "No data received!"})
+
+
+class UpdateEmployerView(APIView):
+    def put(self, request, *args, **kwargs):
+        id = request.data['employer_id']
+        data = request.data['data']
+        if id and data:
+            try:
+                employer = Employer.objects.get(id=id)
+                if data['name']:
+                    employer.name = data['name']
+                if data['post']:
+                    employer.post = data['post']
+                if data['status']:
+                    employer.status = data['status']
+                employer.save()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user"})
+        return Response({"error": "No data received!"})
+
+
+class UpdateMarkupView(APIView):
+    def put(self, request, *args, **kwargs):
+        id = request.data['markup_id']
+        data = request.data['data']
+        if id and data:
+            try:
+                markup = Markups.objects.get(id=id)
+                if data['name']:
+                    markup.name = data['name']
+                if data['price_range_from']:
+                    markup.price_range_from = data['price_range_from']
+                if data['price_range_to']:
+                    markup.price_range_to = data['price_range_to']
+                if data['markup']:
+                    markup.markup = data['markup']
+                if data['markup_method']:
+                    markup.markup_method = data['markup_method']
+                markup.save()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user"})
+        return Response({"error": "No data received!"})
+
+
+class UpdateProductView(APIView):
+    def put(self, request, *args, **kwargs):
+        uid = request.data['uid']
+        data = request.data['data']
+        if uid and data:
+            try:
+                product = Products.objects.get(uid=uid)
+                if data['name']:
+                    product.name = data['name']
+                if data['quantity']:
+                    product.quantity = data['quantity']
+                if data['description']:
+                    product.description = data['description']
+                if data['price_purchasing']:
+                    product.price_purchasing = data['price_purchasing']
+                if data['price_retail']:
+                    product.price_retail = data['price_retail']
+                if data['price_wholesale']:
+                    product.price_wholesale = data['price_wholesale']
+                if data['price_agent']:
+                    product.price_agent = data['price_agent']
+                if data['options']:
+                    for option in product.options.all():
+                        option.delete()
+                    for option in data['options']:
+                        try:
+                            new_option = Options()
+                            new_option.product = product
+                            new_option.color = option['color']
+                            new_option.size = option['size']
+                            new_option.quantity = option['quantity']
+                            new_option.storage = option['storage']
+                            new_option.price_purchasing = option['price_purchasing']
+                            new_option.price_retail = option['price_retail']
+                            new_option.price_wholesale = option['price_wholesale']
+                            new_option.price_agent = option['price_agent']
+                            new_option.save()
+                        except:
+                            pass
+                if data['photos']:
+                    for photo in product.photos.all():
+                        photo.delete()
+                    for photo in data['photos']:
+                        try:
+                            new_photo = Photos()
+                            new_photo.product = product
+                            new_photo.photo.save(photo["file_name"], ContentFile(json_to_bytes(photo['image'])))
+                            new_photo.save()
+                        except:
+                            pass
+                product.save()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user"})
+        return Response({"error": "No data received!"})
+
+
+class UpdateSaleView(APIView):
+    def put(self, request, *args, **kwargs):
+        id = request.data['sale_id']
+        data = request.data['data']
+        if id and data:
+            try:
+                sale = Sales.objects.get(id=id)
+                if data['date_time']:
+                    sale.date_time = datetime.datetime.strptime(data['date_time'], "%d.%m.%Y %H:%M")
+                if data['name']:
+                    sale.name = data['name']
+                if data['color']:
+                    sale.color = data['color']
+                if data['size']:
+                    sale.size = data['size']
+                if data['quantity']:
+                    sale.quantity = data['quantity']
+                if data['price']:
+                    sale.price = data['price']
+                if data['sale_sum']:
+                    sale.sale_sum = data['sale_sum']
+                if data['employer']:
+                    sale.employer = data['employer']
+                if data['photo']:
+                    sale.photo.save(data["photo"]["file_name"], ContentFile(json_to_bytes(data["photo"]["image"])))
+                else:
+                    sale.save()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user"})
+        return Response({"error": "No data received!"})
+
+
+class UpdateReturnView(APIView):
+    def put(self, request, *args, **kwargs):
+        id = request.data['return_id']
+        data = request.data['data']
+        if id and data:
+            try:
+                return_obj = Returns.objects.get(id=id)
+                if data['date_time']:
+                    return_obj.date_time = datetime.datetime.strptime(data['date_time'], "%d.%m.%Y %H:%M")
+                if data['name']:
+                    return_obj.name = data['name']
+                if data['color']:
+                    return_obj.color = data['color']
+                if data['size']:
+                    return_obj.size = data['size']
+                if data['quantity']:
+                    return_obj.quantity = data['quantity']
+                if data['price']:
+                    return_obj.price = data['price']
+                if data['sale_sum']:
+                    return_obj.sale_sum = data['sale_sum']
+                if data['employer']:
+                    return_obj.employer = data['employer']
+                if data['photo']:
+                    return_obj.photo.save(data["photo"]["file_name"], ContentFile(json_to_bytes(data["photo"]["image"])))
+                else:
+                    return_obj.save()
+                return Response({"status": "successfully"})
+            except:
+                return Response({'error': "There is no such user"})
         return Response({"error": "No data received!"})
