@@ -106,8 +106,8 @@ def all_data():
     return serializer_for_queryset.data
 
 
-def user_data(email):
-    user = User.objects.get(username=email)
+def user_data(pk):
+    user = User.objects.get(id=pk)
     serializer_for_queryset = UserSerializer(
         instance=user,
     )
@@ -172,38 +172,38 @@ class GetAllInfoView(APIView):
 
 
 class GetUserInfoView(APIView):
-    def get(self, request, email):
-        return Response(user_data(email))
+    def get(self, request, pk):
+        return Response(user_data(pk))
 
 
 class GetUserDepartmentsView(APIView):
-    def get(self, request, email):
-        return Response(user_data(email)['departments'])
+    def get(self, request, pk):
+        return Response(user_data(pk)['departments'])
 
 
 class GetUserEmployeesView(APIView):
-    def get(self, request, email):
-        return Response(user_data(email)['employees'])
+    def get(self, request, pk):
+        return Response(user_data(pk)['employees'])
 
 
 class GetUserMarkupsView(APIView):
-    def get(self, request, email):
-        return Response(user_data(email)['markups'])
+    def get(self, request, pk):
+        return Response(user_data(pk)['markups'])
 
 
 class GetUserProductsView(APIView):
-    def get(self, request, email):
-        return Response(user_data(email)['products'])
+    def get(self, request, pk):
+        return Response(user_data(pk)['products'])
 
 
 class GetUserSalesView(APIView):
-    def get(self, request, email):
-        return Response(user_data(email)['sales'])
+    def get(self, request, pk):
+        return Response(user_data(pk)['sales'])
 
 
 class GetUserReturnsView(APIView):
-    def get(self, request, email):
-        return Response(user_data(email)['returns'])
+    def get(self, request, pk):
+        return Response(user_data(pk)['returns'])
 
 
 class GetProductView(APIView):
@@ -252,7 +252,7 @@ class AddUserDepartmentView(APIView):
         data_dict = request.data
         if data_dict:
             try:
-                user = User.objects.get(username=data_dict['email'])
+                user = User.objects.get(id=data_dict['pk'])
             except:
                 return Response({'error': "There is no such user"})
             try:
@@ -282,7 +282,7 @@ class AddUserEmployeesView(APIView):
         data_dict = request.data
         if data_dict:
             try:
-                user = User.objects.get(username=data_dict['email'])
+                user = User.objects.get(id=data_dict['pk'])
             except:
                 return Response({'error': "There is no such user"})
             try:
@@ -310,7 +310,7 @@ class AddUserMarkupView(APIView):
         data_dict = request.data
         if data_dict:
             try:
-                user = User.objects.get(username=data_dict['email'])
+                user = User.objects.get(id=data_dict['pk'])
             except:
                 return Response({'error': "There is no such user"})
             try:
@@ -342,7 +342,7 @@ class AddUserProductView(APIView):
         data_dict = request.data
         if data_dict:
             try:
-                user = User.objects.get(username=data_dict['email'])
+                user = User.objects.get(id=data_dict['pk'])
             except:
                 return Response({'error': "There is no such user"})
             try:
@@ -403,7 +403,7 @@ class AddUserSaleView(APIView):
         data_dict = request.data
         if data_dict:
             try:
-                user = User.objects.get(username=data_dict['email'])
+                user = User.objects.get(id=data_dict['pk'])
             except:
                 return Response({'error': "There is no such user"})
             try:
@@ -442,7 +442,7 @@ class AddUserReturnView(APIView):
         data_dict = request.data
         if data_dict:
             try:
-                user = User.objects.get(username=data_dict['email'])
+                user = User.objects.get(id=data_dict['pk'])
             except:
                 return Response({'error': "There is no such user"})
             try:
@@ -478,10 +478,10 @@ class AddUserReturnView(APIView):
 
 class DeleteUserView(APIView):
     def delete(self, request, *args, **kwargs):
-        email = request.data['email']
-        if email:
+        pk = request.data['pk']
+        if pk:
             try:
-                user = User.objects.get(username=email)
+                user = User.objects.get(id=pk)
                 user.delete()
                 return Response({"status": "successfully"})
             except:
@@ -491,10 +491,10 @@ class DeleteUserView(APIView):
 
 class DeleteUserDepartmentsView(APIView):
     def delete(self, request, *args, **kwargs):
-        email = request.data['email']
-        if email:
+        pk = request.data['pk']
+        if pk:
             try:
-                user = User.objects.get(username=email)
+                user = User.objects.get(id=pk)
                 for i in user.profile.departments.all():
                     i.delete()
                 return Response({"status": "successfully"})
@@ -518,10 +518,10 @@ class DeleteUserDepartmentView(APIView):
 
 class DeleteUserEmployeesView(APIView):
     def delete(self, request, *args, **kwargs):
-        email = request.data['email']
-        if email:
+        pk = request.data['pk']
+        if pk:
             try:
-                user = User.objects.get(username=email)
+                user = User.objects.get(id=pk)
                 for i in user.profile.employees.all():
                     i.delete()
                 return Response({"status": "successfully"})
@@ -545,10 +545,10 @@ class DeleteUserEmployerView(APIView):
 
 class DeleteUserMarkupsView(APIView):
     def delete(self, request, *args, **kwargs):
-        email = request.data['email']
-        if email:
+        pk = request.data['pk']
+        if pk:
             try:
-                user = User.objects.get(username=email)
+                user = User.objects.get(id=pk)
                 for i in user.profile.markups.all():
                     i.delete()
                 return Response({"status": "successfully"})
@@ -572,10 +572,10 @@ class DeleteUserMarkupView(APIView):
 
 class DeleteUserProductsView(APIView):
     def delete(self, request, *args, **kwargs):
-        email = request.data['email']
-        if email:
+        pk = request.data['pk']
+        if pk:
             try:
-                user = User.objects.get(username=email)
+                user = User.objects.get(id=pk)
                 for i in user.profile.products.all():
                     i.delete()
                 return Response({"status": "successfully"})
@@ -599,10 +599,10 @@ class DeleteUserProductView(APIView):
 
 class DeleteUserSalesView(APIView):
     def delete(self, request, *args, **kwargs):
-        email = request.data['email']
-        if email:
+        pk = request.data['pk']
+        if pk:
             try:
-                user = User.objects.get(username=email)
+                user = User.objects.get(id=pk)
                 for i in user.profile.sales.all():
                     i.delete()
                 return Response({"status": "successfully"})
@@ -626,10 +626,10 @@ class DeleteUserSaleView(APIView):
 
 class DeleteUserReturnsView(APIView):
     def delete(self, request, *args, **kwargs):
-        email = request.data['email']
-        if email:
+        pk = request.data['pk']
+        if pk:
             try:
-                user = User.objects.get(username=email)
+                user = User.objects.get(id=pk)
                 for i in user.profile.returns.all():
                     i.delete()
                 return Response({"status": "successfully"})
@@ -653,11 +653,11 @@ class DeleteUserReturnView(APIView):
 
 class UpdateUserView(APIView):
     def put(self, request, *args, **kwargs):
-        email = request.data['email']
+        pk = request.data['pk']
         data = request.data['data']
-        if email and data:
+        if pk and data:
             try:
-                user = User.objects.get(username=email)
+                user = User.objects.get(id=pk)
                 if data['password']:
                     user.set_password(data['password'])
                 if data['name']:

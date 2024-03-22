@@ -4,14 +4,14 @@ from . import views
 urlpatterns = [
     #read
     path('get/all/', views.GetAllInfoView.as_view()),
-    path('get/user/<str:email>/', views.GetUserInfoView.as_view()),
-    path('get/user_departments/<str:email>/', views.GetUserDepartmentsView.as_view()),
-    path('get/user_employees/<str:email>/', views.GetUserEmployeesView.as_view()),
-    path('get/user_markups/<str:email>/', views.GetUserMarkupsView.as_view()),
-    path('get/user_products/<str:email>/', views.GetUserProductsView.as_view()),
-    path('get/user_sales/<str:email>/', views.GetUserSalesView.as_view()),
-    path('get/user_returns/<str:email>/', views.GetUserReturnsView.as_view()),
-    path('get/product_by_uid/<str:uid>/', views.GetProductView.as_view()),
+    path('get/user/<int:pk>/', views.GetUserInfoView.as_view()),
+    path('get/user_departments/<int:pk>/', views.GetUserDepartmentsView.as_view()),
+    path('get/user_employees/<int:pk>/', views.GetUserEmployeesView.as_view()),
+    path('get/user_markups/<int:pk>/', views.GetUserMarkupsView.as_view()),
+    path('get/user_products/<int:pk>/', views.GetUserProductsView.as_view()),
+    path('get/user_sales/<int:pk>/', views.GetUserSalesView.as_view()),
+    path('get/user_returns/<int:pk>/', views.GetUserReturnsView.as_view()),
+    path('get/product_by_uid/<int:pk>/', views.GetProductView.as_view()),
     #add
     path('add/user/', views.AddUserView.as_view()),
     path('add/department/', views.AddUserDepartmentView.as_view()),

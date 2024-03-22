@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 
 class UserSerializer(serializers.Serializer):
+    pk = serializers.IntegerField(source="id")
     email = serializers.CharField(source="username", max_length=200)
     name = serializers.CharField(source='profile.name', max_length=200)
     balance = serializers.IntegerField(source='profile.balance')
